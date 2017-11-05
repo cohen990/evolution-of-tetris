@@ -10,7 +10,7 @@ import java.util.Collections;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-
+// stolen from https://gist.github.com/DataWraith/5236083
 public class Tetris extends JPanel {
 
     private static final long serialVersionUID = -8715353373678321308L;
