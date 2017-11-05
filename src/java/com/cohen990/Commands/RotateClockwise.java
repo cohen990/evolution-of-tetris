@@ -2,13 +2,8 @@ package com.cohen990.Commands;
 
 import com.cohen990.Tetris;
 
-public class RotateClockwise extends Command {
+public class RotateClockwise extends Rotate {
     public RotateClockwise(Tetris game) {
-        super(game);
-    }
-
-    @Override
-    public void execute() {
-        this.game.rotate(+1);
+        super(game, RotationDirection.clockwise);
     }
 }

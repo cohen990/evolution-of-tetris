@@ -9,6 +9,11 @@ public class DropByOne extends Command {
 
     @Override
     public void execute() {
-        game.dropDown();
+        if (!game.collidesAt(game.pieceOrigin.x, game.pieceOrigin.y + 1, game.rotation)) {
+            game.pieceOrigin.y += 1;
+        } else {
+            game.fixToWell();
+        }
+        game.repaint();
     }
 }
