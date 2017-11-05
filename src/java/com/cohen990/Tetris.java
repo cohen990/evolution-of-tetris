@@ -8,8 +8,10 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Random;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
@@ -217,39 +219,56 @@ public class Tetris extends JPanel {
         game.init();
         GameFrame.add(game);
 
-        // Keyboard controls
-        GameFrame.addKeyListener(new KeyListener() {
-            public void keyTyped(KeyEvent e) {
-            }
+        Boolean isHumanPlayable = false;
 
-            Command command = new NullCommand(game);
-
-            public void keyPressed(KeyEvent e) {
-                switch (e.getKeyCode()) {
-                    case KeyEvent.VK_UP:
-                        command = new RotateCounterClockwise(game);
-                        break;
-                    case KeyEvent.VK_DOWN:
-                        command = new RotateClockwise(game);
-                        break;
-                    case KeyEvent.VK_LEFT:
-                        command = new MoveLeft(game);
-                        break;
-                    case KeyEvent.VK_RIGHT:
-                        command = new MoveRight(game);
-                        break;
-                    case KeyEvent.VK_SPACE:
-                        command = new DropToBottom(game);
-                        game.score += 1;
-                        break;
+        if(isHumanPlayable) {
+            // Keyboard controls
+            GameFrame.addKeyListener(new KeyListener() {
+                public void keyTyped(KeyEvent e) {
                 }
 
-                command.Execute();
-            }
+                Command command = new NullCommand(game);
 
-            public void keyReleased(KeyEvent e) {
-            }
-        });
+                public void keyPressed(KeyEvent e) {
+                    switch (e.getKeyCode()) {
+                        case KeyEvent.VK_UP:
+                            command = new RotateCounterClockwise(game);
+                            break;
+                        case KeyEvent.VK_DOWN:
+                            command = new RotateClockwise(game);
+                            break;
+                        case KeyEvent.VK_LEFT:
+                            command = new MoveLeft(game);
+                            break;
+                        case KeyEvent.VK_RIGHT:
+                            command = new MoveRight(game);
+                            break;
+                        case KeyEvent.VK_SPACE:
+                            command = new DropToBottom(game);
+                            game.score += 1;
+                            break;
+                    }
+
+                    command.execute();
+                }
+
+                public void keyReleased(KeyEvent e) {
+                }
+            });
+        } else {
+            Thread aiThread = new Thread(() -> {
+                while (true) {
+                    try {
+                        Thread.sleep(1000);
+                        Command command = game.pickRandomMove();
+                        command.execute();
+                        game.dropDown();
+                    } catch ( InterruptedException e ) {}
+                }
+            });
+
+            aiThread.start();
+        }
 
         // Make the falling piece drop every second
         Thread thread = new Thread(() -> {
@@ -262,5 +281,26 @@ public class Tetris extends JPanel {
         });
 
         thread.start();
+    }
+
+    private Command pickRandomMove() {
+        Random random = new Random();
+
+        Command[] possibleCommands = {
+            new DropByOne(this),
+            new DropToBottom(this),
+            new MoveLeft(this),
+            new MoveRight(this),
+            new RotateCounterClockwise(this),
+            new RotateClockwise(this),
+            new NullCommand(this),
+        };
+
+        int randomSelection = random.nextInt(possibleCommands.length);
+        Command selected = possibleCommands[randomSelection];
+
+        System.out.printf("selected %s", selected.getClass().getSimpleName());
+
+        return selected;
     }
 }

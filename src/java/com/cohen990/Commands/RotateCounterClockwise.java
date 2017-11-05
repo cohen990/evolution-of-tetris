@@ -8,7 +8,7 @@ public class RotateCounterClockwise extends Command {
     }
 
     @Override
-    public void Execute() {
+    public void execute() {
         game.rotate(-1);
     }
 }
