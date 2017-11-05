@@ -1,5 +1,6 @@
 package com.cohen990;
 
+import com.cohen990.Commands.*;
 import com.cohen990.Tetraminos.*;
 
 import java.awt.Color;
@@ -113,7 +114,7 @@ public class Tetris extends JPanel {
     }
 
     // Drops the piece one line or fixes it to the well if it can't drop
-    public void dropDownToBottom() {
+    public void dropToBottom() {
         while (!collidesAt(pieceOrigin.x, pieceOrigin.y + 1, rotation)) {
             pieceOrigin.y += 1;
         }
@@ -221,25 +222,29 @@ public class Tetris extends JPanel {
             public void keyTyped(KeyEvent e) {
             }
 
+            Command command = new NullCommand(game);
+
             public void keyPressed(KeyEvent e) {
                 switch (e.getKeyCode()) {
                     case KeyEvent.VK_UP:
-                        game.rotate(-1);
+                        command = new RotateCounterClockwise(game);
                         break;
                     case KeyEvent.VK_DOWN:
-                        game.rotate(+1);
+                        command = new RotateClockwise(game);
                         break;
                     case KeyEvent.VK_LEFT:
-                        game.move(-1);
+                        command = new MoveLeft(game);
                         break;
                     case KeyEvent.VK_RIGHT:
-                        game.move(+1);
+                        command = new MoveRight(game);
                         break;
                     case KeyEvent.VK_SPACE:
-                        game.dropDownToBottom();
+                        command = new DropToBottom(game);
                         game.score += 1;
                         break;
                 }
+
+                command.Execute();
             }
 
             public void keyReleased(KeyEvent e) {
