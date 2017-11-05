@@ -8,7 +8,7 @@ public class NullCommand extends Command {
     }
 
     @Override
-    public void Execute() {
+    public void execute() {
         /* no op */
     }
 }

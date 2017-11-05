@@ -8,7 +8,7 @@ public class DropByOne extends Command {
     }
 
     @Override
-    public void Execute() {
-        game.rotate(-1);
+    public void execute() {
+        game.dropDown();
     }
 }

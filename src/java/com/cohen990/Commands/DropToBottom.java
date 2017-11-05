@@ -8,7 +8,7 @@ public class DropToBottom extends Command {
     }
 
     @Override
-    public void Execute() {
+    public void execute() {
         game.dropToBottom();
     }
 }

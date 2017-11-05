@@ -8,7 +8,7 @@ public class MoveLeft extends Command {
     }
 
     @Override
-    public void Execute() {
+    public void execute() {
         game.move(-1);
     }
 }

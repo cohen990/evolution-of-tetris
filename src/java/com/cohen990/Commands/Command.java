@@ -9,5 +9,5 @@ public abstract class Command {
         this.game = game;
     }
 
-    public abstract void Execute();
+    public abstract void execute();
 }
