@@ -15,8 +15,18 @@
       <file leaf-file-name="Tetris.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/java/com/cohen990/Tetris.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1132">
-              <caret line="174" column="54" lean-forward="false" selection-start-line="174" selection-start-column="54" selection-end-line="174" selection-end-column="54" />
+            <state relative-caret-position="108">
+              <caret line="72" column="0" lean-forward="true" selection-start-line="72" selection-start-column="0" selection-end-line="72" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Tetramino.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/java/com/cohen990/Tetraminos/Tetramino.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="126">
+              <caret line="9" column="29" lean-forward="true" selection-start-line="9" selection-start-column="29" selection-end-line="9" selection-end-column="29" />
               <folding />
             </state>
           </provider>
@@ -55,7 +65,6 @@
         <option value="$PROJECT_DIR$/src/java/com/company/Main.java" />
         <option value="$PROJECT_DIR$/src/java/com/cohen990/Main.java" />
         <option value="$PROJECT_DIR$/.gitignore" />
-        <option value="$PROJECT_DIR$/src/java/com/cohen990/Tetraminos/Tetramino.java" />
         <option value="$PROJECT_DIR$/src/java/com/cohen990/Tetraminos/TetraminoJ.java" />
         <option value="$PROJECT_DIR$/src/java/com/cohen990/Tetraminos/TetraminoI.java" />
         <option value="$PROJECT_DIR$/src/java/com/cohen990/Tetraminos/TetraminoL.java" />
@@ -63,6 +72,7 @@
         <option value="$PROJECT_DIR$/src/java/com/cohen990/Tetraminos/TetraminoT.java" />
         <option value="$PROJECT_DIR$/src/java/com/cohen990/Tetraminos/TetraminoS.java" />
         <option value="$PROJECT_DIR$/src/java/com/cohen990/Tetraminos/TetraminoO.java" />
+        <option value="$PROJECT_DIR$/src/java/com/cohen990/Tetraminos/Tetramino.java" />
         <option value="$PROJECT_DIR$/src/java/com/cohen990/Tetris.java" />
       </list>
     </option>
@@ -144,6 +154,9 @@
     <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
   </component>
   <component name="RecentsManager">
+    <key name="MoveMembersDialog.RECENTS_KEY">
+      <recent name="com.cohen990.Tetraminos.Tetramino" />
+    </key>
     <key name="CopyClassDialog.RECENTS_KEY">
       <recent name="com.cohen990.Tetraminos" />
     </key>
@@ -368,14 +381,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/java/com/cohen990/Tetraminos/Tetramino.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="90">
-          <caret line="5" column="16" lean-forward="false" selection-start-line="5" selection-start-column="16" selection-end-line="5" selection-end-column="16" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/java/com/cohen990/Tetraminos/TetraminoI.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="108">
@@ -392,10 +397,18 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/java/com/cohen990/Tetraminos/Tetramino.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="126">
+          <caret line="9" column="29" lean-forward="true" selection-start-line="9" selection-start-column="29" selection-end-line="9" selection-end-column="29" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/java/com/cohen990/Tetris.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1132">
-          <caret line="174" column="54" lean-forward="false" selection-start-line="174" selection-start-column="54" selection-end-line="174" selection-end-column="54" />
+        <state relative-caret-position="108">
+          <caret line="72" column="0" lean-forward="true" selection-start-line="72" selection-start-column="0" selection-end-line="72" selection-end-column="0" />
           <folding />
         </state>
       </provider>

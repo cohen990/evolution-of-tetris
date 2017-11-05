@@ -16,15 +16,7 @@ import javax.swing.JPanel;
 public class Tetris extends JPanel {
 // no idea what this does    private static final long serialVersionUID = -8715353373678321308L;
 
-    private final Tetramino[] Tetraminos = {
-        new TetraminoI(),
-        new TetraminoJ(),
-        new TetraminoL(),
-        new TetraminoO(),
-        new TetraminoS(),
-        new TetraminoT(),
-        new TetraminoZ(),
-    };
+    private final Tetramino[] Tetraminos = Tetramino.initializeTetraminos();
 
     private final Color[] tetraminoColors = {
             Color.cyan, Color.blue, Color.orange, Color.yellow, Color.green, Color.pink, Color.red
@@ -67,12 +59,16 @@ public class Tetris extends JPanel {
 
     // Collision test for the dropping piece
     private boolean collidesAt(int x, int y, int rotation) {
-        for (Point p : Tetraminos[currentPiece].Points[rotation]) {
+        for (Point p : currentTetraminoPoints()[rotation]) {
             if (well[p.x + x][p.y + y] != Color.BLACK) {
                 return true;
             }
         }
         return false;
+    }
+
+    private Point[][] currentTetraminoPoints() {
+        return Tetraminos[currentPiece].Points;
     }
 
     // Rotate the piece clockwise or counterclockwise
@@ -117,7 +113,7 @@ public class Tetris extends JPanel {
     // Make the dropping piece part of the well, so it is available for
     // collision detection.
     public void fixToWell() {
-        for (Point p : Tetraminos[currentPiece].Points[rotation]) {
+        for (Point p : currentTetraminoPoints()[rotation]) {
             well[pieceOrigin.x + p.x][pieceOrigin.y + p.y] = tetraminoColors[currentPiece];
         }
         clearRows();
@@ -172,7 +168,7 @@ public class Tetris extends JPanel {
     // Draw the falling piece
     private void drawPiece(Graphics g) {
         g.setColor(tetraminoColors[currentPiece]);
-        for (Point p : Tetraminos[currentPiece].Points[rotation]) {
+        for (Point p : currentTetraminoPoints()[rotation]) {
             g.fillRect((p.x + pieceOrigin.x) * 26,
                     (p.y + pieceOrigin.y) * 26,
                     25, 25);
