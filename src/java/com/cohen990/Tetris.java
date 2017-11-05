@@ -1,39 +1,40 @@
 package com.cohen990;
 
+import com.cohen990.ArtificialIntelligence.RandomStrategy;
+import com.cohen990.ArtificialIntelligence.Strategy;
 import com.cohen990.Commands.*;
 import com.cohen990.Tetraminos.*;
 
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Random;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 // stolen from https://gist.github.com/DataWraith/5236083
 public class Tetris extends JPanel {
-// no idea what this does    private static final long serialVersionUID = -8715353373678321308L;
-
     private final Tetramino[] Tetraminos = Tetramino.initializeTetraminos();
 
     private final Color[] tetraminoColors = {
             Color.cyan, Color.blue, Color.orange, Color.yellow, Color.green, Color.pink, Color.red
     };
 
-    private Point pieceOrigin;
+    public Point pieceOrigin;
     private int currentPiece;
-    private int rotation;
+    public int rotation;
     private ArrayList<Integer> nextPieces = new ArrayList<Integer>();
 
     private long score;
     private Color[][] well;
 
     private static JFrame GameFrame;
+
+    private static final int GAME_CLOCK = 1000;
+    private static final int AI_CLOCK = 1000;
+    private static Thread gameThread;
+    private static Thread aiThread;
 
     // Creates a border around the well and initializes the dropping piece
     private void init() {
@@ -69,10 +70,12 @@ public class Tetris extends JPanel {
 
     private void gameOver() {
         GameFrame.dispose();
+        aiThread.stop();
+        gameThread.stop();
     }
 
     // Collision test for the dropping piece
-    private boolean collidesAt(int x, int y, int rotation) {
+    public boolean collidesAt(int x, int y, int rotation) {
         for (Point p : currentTetraminoPoints()[rotation]) {
             if (well[p.x + x][p.y + y] != Color.BLACK) {
                 return true;
@@ -83,36 +86,6 @@ public class Tetris extends JPanel {
 
     private Point[][] currentTetraminoPoints() {
         return Tetraminos[currentPiece].Points;
-    }
-
-    // Rotate the piece clockwise or counterclockwise
-    public void rotate(int i) {
-        int newRotation = (rotation + i) % 4;
-        if (newRotation < 0) {
-            newRotation = 3;
-        }
-        if (!collidesAt(pieceOrigin.x, pieceOrigin.y, newRotation)) {
-            rotation = newRotation;
-        }
-        repaint();
-    }
-
-    // Move the piece left or right
-    public void move(int i) {
-        if (!collidesAt(pieceOrigin.x + i, pieceOrigin.y, rotation)) {
-            pieceOrigin.x += i;
-        }
-        repaint();
-    }
-
-    // Drops the piece one line or fixes it to the well if it can't drop
-    public void dropDown() {
-        if (!collidesAt(pieceOrigin.x, pieceOrigin.y + 1, rotation)) {
-            pieceOrigin.y += 1;
-        } else {
-            fixToWell();
-        }
-        repaint();
     }
 
     // Drops the piece one line or fixes it to the well if it can't drop
@@ -210,97 +183,43 @@ public class Tetris extends JPanel {
     }
 
     public static void main(String[] args) {
-        GameFrame = new JFrame("Tetris");
-        GameFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        GameFrame.setSize(12*26+10, 26*23+25);
-        GameFrame.setVisible(true);
-
         final Tetris game = new Tetris();
         game.init();
-        GameFrame.add(game);
 
-        Boolean isHumanPlayable = false;
+        initialiseGameFrame(game);
 
-        if(isHumanPlayable) {
-            // Keyboard controls
-            GameFrame.addKeyListener(new KeyListener() {
-                public void keyTyped(KeyEvent e) {
-                }
+        Strategy aiStrategy = new RandomStrategy();
 
-                Command command = new NullCommand(game);
-
-                public void keyPressed(KeyEvent e) {
-                    switch (e.getKeyCode()) {
-                        case KeyEvent.VK_UP:
-                            command = new RotateCounterClockwise(game);
-                            break;
-                        case KeyEvent.VK_DOWN:
-                            command = new RotateClockwise(game);
-                            break;
-                        case KeyEvent.VK_LEFT:
-                            command = new MoveLeft(game);
-                            break;
-                        case KeyEvent.VK_RIGHT:
-                            command = new MoveRight(game);
-                            break;
-                        case KeyEvent.VK_SPACE:
-                            command = new DropToBottom(game);
-                            game.score += 1;
-                            break;
-                    }
-
-                    command.execute();
-                }
-
-                public void keyReleased(KeyEvent e) {
-                }
-            });
-        } else {
-            Thread aiThread = new Thread(() -> {
-                while (true) {
-                    try {
-                        Thread.sleep(1000);
-                        Command command = game.pickRandomMove();
-                        command.execute();
-                        game.dropDown();
-                    } catch ( InterruptedException e ) {}
-                }
-            });
-
-            aiThread.start();
-        }
-
-        // Make the falling piece drop every second
-        Thread thread = new Thread(() -> {
+        aiThread = new Thread(() -> {
             while (true) {
                 try {
-                    Thread.sleep(1000);
-                    game.dropDown();
+                    Thread.sleep(AI_CLOCK);
+                    Command command = aiStrategy.pickMove(game);
+                    command.execute();
                 } catch ( InterruptedException e ) {}
             }
         });
 
-        thread.start();
+        aiThread.start();
+
+        // Make the falling piece drop every second
+        gameThread = new Thread(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(GAME_CLOCK);
+                    new DropByOne(game).execute();
+                } catch ( InterruptedException e ) {}
+            }
+        });
+
+        gameThread.start();
     }
 
-    private Command pickRandomMove() {
-        Random random = new Random();
-
-        Command[] possibleCommands = {
-            new DropByOne(this),
-            new DropToBottom(this),
-            new MoveLeft(this),
-            new MoveRight(this),
-            new RotateCounterClockwise(this),
-            new RotateClockwise(this),
-            new NullCommand(this),
-        };
-
-        int randomSelection = random.nextInt(possibleCommands.length);
-        Command selected = possibleCommands[randomSelection];
-
-        System.out.printf("selected %s", selected.getClass().getSimpleName());
-
-        return selected;
+    private static void initialiseGameFrame(Tetris game) {
+        GameFrame = new JFrame("Tetris");
+        GameFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        GameFrame.setSize(12*26+10, 26*23+25);
+        GameFrame.setVisible(true);
+        GameFrame.add(game);
     }
 }
