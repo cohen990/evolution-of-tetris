@@ -30,6 +30,8 @@ public class Tetris extends JPanel {
     private long score;
     private Color[][] well;
 
+    private static JFrame GameFrame;
+
     // Creates a border around the well and initializes the dropping piece
     private void init() {
         well = new Color[12][24];
@@ -54,7 +56,16 @@ public class Tetris extends JPanel {
             Collections.shuffle(nextPieces);
         }
         currentPiece = nextPieces.get(0);
+
+        if(collidesAt(pieceOrigin.x, pieceOrigin.y, rotation))
+        {
+            gameOver();
+        }
         nextPieces.remove(0);
+    }
+
+    private void gameOver() {
+        GameFrame.dispose();
     }
 
     // Collision test for the dropping piece
@@ -196,17 +207,17 @@ public class Tetris extends JPanel {
     }
 
     public static void main(String[] args) {
-        JFrame f = new JFrame("Tetris");
-        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        f.setSize(12*26+10, 26*23+25);
-        f.setVisible(true);
+        GameFrame = new JFrame("Tetris");
+        GameFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        GameFrame.setSize(12*26+10, 26*23+25);
+        GameFrame.setVisible(true);
 
         final Tetris game = new Tetris();
         game.init();
-        f.add(game);
+        GameFrame.add(game);
 
         // Keyboard controls
-        f.addKeyListener(new KeyListener() {
+        GameFrame.addKeyListener(new KeyListener() {
             public void keyTyped(KeyEvent e) {
             }
 
@@ -236,13 +247,15 @@ public class Tetris extends JPanel {
         });
 
         // Make the falling piece drop every second
-        new Thread(() -> {
+        Thread thread = new Thread(() -> {
             while (true) {
                 try {
                     Thread.sleep(1000);
                     game.dropDown();
                 } catch ( InterruptedException e ) {}
             }
-        }).start();
+        });
+
+        thread.start();
     }
 }
