@@ -160,72 +160,125 @@ public class Tetris extends JPanel {
         painter.paintComponent(g);
     }
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException, IOException {
         int populationSize = 10;
 
         TetrisPlayer[] players = new TetrisPlayer[populationSize];
 
-        for(int i = 0; i < populationSize; i++){
-            final Tetris game = new Tetris();
-            game.init();
+        boolean experimentIsNotComplete = true;
 
-            initialiseGameFrame(game);
+        Integer generation = 1;
 
-            Strategy aiStrategy = new IntelligentStrategy(game);
+        while(experimentIsNotComplete) {
 
-            aiThread = new Thread(() -> {
-                boolean finished = false;
-                while (!finished) {
-                    try {
-                        Thread.sleep(AI_CLOCK);
-                    } catch (InterruptedException e) {
-                        finished = true;
+            for (int i = 0; i < populationSize; i++) {
+                final Tetris game = new Tetris();
+                game.init();
+
+                initialiseGameFrame(game);
+
+                Strategy aiStrategy = new IntelligentStrategy(game);
+
+                aiThread = new Thread(() -> {
+                    boolean finished = false;
+                    while (!finished) {
+                        try {
+                            Thread.sleep(AI_CLOCK);
+                        } catch (InterruptedException e) {
+                            finished = true;
+                        }
+                        Command command = aiStrategy.pickMove(game);
+                        command.execute();
                     }
-                    Command command = aiStrategy.pickMove(game);
-                    command.execute();
-                }
-            });
+                });
 
 
-            // Make the falling piece drop every second
-            gameThread = new Thread(() -> {
-                boolean finished = false;
-                while (!finished) {
-                    try {
-                        Thread.sleep(GAME_CLOCK);
-                        new DropByOne(game).execute();
-                    } catch ( InterruptedException e ) {
-                        finished = true;
+                // Make the falling piece drop every second
+                gameThread = new Thread(() -> {
+                    boolean finished = false;
+                    while (!finished) {
+                        try {
+                            Thread.sleep(GAME_CLOCK);
+                            new DropByOne(game).execute();
+                        } catch (InterruptedException e) {
+                            finished = true;
+                        }
                     }
-                }
-            });
+                });
 
-            executorService = Executors.newCachedThreadPool();
+                executorService = Executors.newCachedThreadPool();
 
-            executorService.execute(gameThread);
-            executorService.execute(aiThread);
+                executorService.execute(gameThread);
+                executorService.execute(aiThread);
 
-            executorService.awaitTermination(10, TimeUnit.SECONDS);
+                executorService.awaitTermination(10, TimeUnit.SECONDS);
 
-            System.out.println("finished");
+                System.out.println("finished");
 
-            GameFrame.dispose();
+                GameFrame.dispose();
 
-            players[i] = new TetrisPlayer(((IntelligentStrategy)aiStrategy).network, game.score);
+                players[i] = new TetrisPlayer(((IntelligentStrategy) aiStrategy).network, game.score);
+            }
+
+            String directory = String.format("experiment1\\generation%d\\", generation);
+
+            for(int i = 0; i < players.length; i++){
+                writeResultToFile(directory, players[i]);
+            }
+
+            writeSummary(directory, players);
+
+            generation = generation + 1;
+
+            players = reproduce(players);
+        }
+    }
+
+    private static TetrisPlayer[] reproduce(TetrisPlayer[] players) {
+        Stream<TetrisPlayer> playersStream = Stream.of(players);
+
+        playersStream = playersStream.sorted(Comparator.comparingLong(o -> o.score));
+
+        playersStream = playersStream.skip(500).collect();
+
+        TetrisPlayer[] children = new TetrisPlayer[500];
+
+
+
+        return players;
+    }
+
+    private static void writeSummary(String pathName, TetrisPlayer[] players) throws IOException {
+        String fileName = pathName + "summary.txt";
+        FileWriter writer = new FileWriter(fileName);
+
+        int maxHash = 0;
+        long max = Long.MIN_VALUE;
+        int minHash = 0;
+        long min = Long.MAX_VALUE;
+        long total = 0;
+
+        for(int i = 0; i < players.length; i++){
+            TetrisPlayer player = players[i];
+            long score = player.score;
+            if(score > max){
+                max = score;
+                maxHash = player.hashCode();
+            }
+            if(score < min){
+                min = score;
+                minHash = player.hashCode();
+            }
+            total += score;
         }
 
-        Stream<TetrisPlayer> sorted =
-                Stream.of(players).sorted(Comparator.comparingLong(player -> player.score));
+        float average = (float) total/ players.length;
 
-        long unixTime = System.currentTimeMillis() / 1000L;
+        writer.write(String.format("Max: %d - player: %d\n", max, maxHash));
+        writer.write(String.format("Min: %d - player: %d\n", min, minHash));
+        writer.write(String.format("Average: %f", average));
 
-        sorted.forEach(result -> {
-            try {
-                writeResultToFile(String.format("results\\%s\\", unixTime), result);
-            } catch (java.io.IOException e) {
-                e.printStackTrace();
-            }
-        });
+        writer.close();
     }
 
     private static void writeResultToFile(String pathName, TetrisPlayer element) throws IOException {
@@ -247,7 +300,7 @@ public class Tetris extends JPanel {
             boolean result = false;
 
             try{
-                directory.mkdir();
+                directory.mkdirs();
                 result = true;
             }
             catch(SecurityException se){
