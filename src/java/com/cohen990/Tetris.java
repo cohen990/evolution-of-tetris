@@ -1,5 +1,7 @@
 package com.cohen990;
 
+import com.cohen990.Tetraminos.*;
+
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
@@ -12,65 +14,16 @@ import javax.swing.JPanel;
 
 // stolen from https://gist.github.com/DataWraith/5236083
 public class Tetris extends JPanel {
-
-    private static final long serialVersionUID = -8715353373678321308L;
+// no idea what this does    private static final long serialVersionUID = -8715353373678321308L;
 
     private final Point[][][] Tetraminos = {
-            // I-Piece
-            {
-                    { new Point(0, 1), new Point(1, 1), new Point(2, 1), new Point(3, 1) },
-                    { new Point(1, 0), new Point(1, 1), new Point(1, 2), new Point(1, 3) },
-                    { new Point(0, 1), new Point(1, 1), new Point(2, 1), new Point(3, 1) },
-                    { new Point(1, 0), new Point(1, 1), new Point(1, 2), new Point(1, 3) }
-            },
-
-            // J-Piece
-            {
-                    { new Point(0, 1), new Point(1, 1), new Point(2, 1), new Point(2, 0) },
-                    { new Point(1, 0), new Point(1, 1), new Point(1, 2), new Point(2, 2) },
-                    { new Point(0, 1), new Point(1, 1), new Point(2, 1), new Point(0, 2) },
-                    { new Point(1, 0), new Point(1, 1), new Point(1, 2), new Point(0, 0) }
-            },
-
-            // L-Piece
-            {
-                    { new Point(0, 1), new Point(1, 1), new Point(2, 1), new Point(2, 2) },
-                    { new Point(1, 0), new Point(1, 1), new Point(1, 2), new Point(0, 2) },
-                    { new Point(0, 1), new Point(1, 1), new Point(2, 1), new Point(0, 0) },
-                    { new Point(1, 0), new Point(1, 1), new Point(1, 2), new Point(2, 0) }
-            },
-
-            // O-Piece
-            {
-                    { new Point(0, 0), new Point(0, 1), new Point(1, 0), new Point(1, 1) },
-                    { new Point(0, 0), new Point(0, 1), new Point(1, 0), new Point(1, 1) },
-                    { new Point(0, 0), new Point(0, 1), new Point(1, 0), new Point(1, 1) },
-                    { new Point(0, 0), new Point(0, 1), new Point(1, 0), new Point(1, 1) }
-            },
-
-            // S-Piece
-            {
-                    { new Point(1, 0), new Point(2, 0), new Point(0, 1), new Point(1, 1) },
-                    { new Point(0, 0), new Point(0, 1), new Point(1, 1), new Point(1, 2) },
-                    { new Point(1, 0), new Point(2, 0), new Point(0, 1), new Point(1, 1) },
-                    { new Point(0, 0), new Point(0, 1), new Point(1, 1), new Point(1, 2) }
-            },
-
-            // T-Piece
-            {
-                    { new Point(1, 0), new Point(0, 1), new Point(1, 1), new Point(2, 1) },
-                    { new Point(1, 0), new Point(0, 1), new Point(1, 1), new Point(1, 2) },
-                    { new Point(0, 1), new Point(1, 1), new Point(2, 1), new Point(1, 2) },
-                    { new Point(1, 0), new Point(1, 1), new Point(2, 1), new Point(1, 2) }
-            },
-
-            // Z-Piece
-            {
-                    { new Point(0, 0), new Point(1, 0), new Point(1, 1), new Point(2, 1) },
-                    { new Point(1, 0), new Point(0, 1), new Point(1, 1), new Point(0, 2) },
-                    { new Point(0, 0), new Point(1, 0), new Point(1, 1), new Point(2, 1) },
-                    { new Point(1, 0), new Point(0, 1), new Point(1, 1), new Point(0, 2) }
-            }
+            new TetraminoI().Points,
+            new TetraminoJ().Points,
+            new TetraminoL().Points,
+            new TetraminoO().Points,
+            new TetraminoS().Points,
+            new TetraminoT().Points,
+            new TetraminoZ().Points,
     };
 
     private final Color[] tetraminoColors = {
@@ -149,6 +102,15 @@ public class Tetris extends JPanel {
         } else {
             fixToWell();
         }
+        repaint();
+    }
+
+    // Drops the piece one line or fixes it to the well if it can't drop
+    public void dropDownToBottom() {
+        while (!collidesAt(pieceOrigin.x, pieceOrigin.y + 1, rotation)) {
+            pieceOrigin.y += 1;
+        }
+        fixToWell();
         repaint();
     }
 
@@ -267,7 +229,7 @@ public class Tetris extends JPanel {
                         game.move(+1);
                         break;
                     case KeyEvent.VK_SPACE:
-                        game.dropDown();
+                        game.dropDownToBottom();
                         game.score += 1;
                         break;
                 }
@@ -278,15 +240,13 @@ public class Tetris extends JPanel {
         });
 
         // Make the falling piece drop every second
-        new Thread() {
-            @Override public void run() {
-                while (true) {
-                    try {
-                        Thread.sleep(1000);
-                        game.dropDown();
-                    } catch ( InterruptedException e ) {}
-                }
+        new Thread(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(1000);
+                    game.dropDown();
+                } catch ( InterruptedException e ) {}
             }
-        }.start();
+        }).start();
     }
 }
