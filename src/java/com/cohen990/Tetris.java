@@ -17,17 +17,17 @@ import javax.swing.JPanel;
 public class Tetris extends JPanel {
     private final Tetramino[] Tetraminos = Tetramino.initializeTetraminos();
 
-    private final Color[] tetraminoColors = {
+    public final Color[] tetraminoColors = {
             Color.cyan, Color.blue, Color.orange, Color.yellow, Color.green, Color.pink, Color.red
     };
 
     public Point pieceOrigin;
-    private int currentPiece;
+    public int currentPiece;
     public int rotation;
     private ArrayList<Integer> nextPieces = new ArrayList<Integer>();
 
-    private long score;
-    private Color[][] well;
+    public long score;
+    public Color[][] well;
 
     private static JFrame GameFrame;
 
@@ -35,6 +35,8 @@ public class Tetris extends JPanel {
     private static final int AI_CLOCK = 1000;
     private static Thread gameThread;
     private static Thread aiThread;
+
+    private final Painter painter = new Painter(this);
 
     // Creates a border around the well and initializes the dropping piece
     private void init() {
@@ -84,17 +86,8 @@ public class Tetris extends JPanel {
         return false;
     }
 
-    private Point[][] currentTetraminoPoints() {
+    public Point[][] currentTetraminoPoints() {
         return Tetraminos[currentPiece].Points;
-    }
-
-    // Drops the piece one line or fixes it to the well if it can't drop
-    public void dropToBottom() {
-        while (!collidesAt(pieceOrigin.x, pieceOrigin.y + 1, rotation)) {
-            pieceOrigin.y += 1;
-        }
-        fixToWell();
-        repaint();
     }
 
     // Make the dropping piece part of the well, so it is available for
@@ -152,34 +145,10 @@ public class Tetris extends JPanel {
         }
     }
 
-    // Draw the falling piece
-    private void drawPiece(Graphics g) {
-        g.setColor(tetraminoColors[currentPiece]);
-        for (Point p : currentTetraminoPoints()[rotation]) {
-            g.fillRect((p.x + pieceOrigin.x) * 26,
-                    (p.y + pieceOrigin.y) * 26,
-                    25, 25);
-        }
-    }
-
     @Override
     public void paintComponent(Graphics g)
     {
-        // Paint the well
-        g.fillRect(0, 0, 26*12, 26*23);
-        for (int i = 0; i < 12; i++) {
-            for (int j = 0; j < 23; j++) {
-                g.setColor(well[i][j]);
-                g.fillRect(26*i, 26*j, 25, 25);
-            }
-        }
-
-        // Display the score
-        g.setColor(Color.WHITE);
-        g.drawString("" + score, 19*12, 25);
-
-        // Draw the currently falling piece
-        drawPiece(g);
+        painter.paintComponent(g);
     }
 
     public static void main(String[] args) {
