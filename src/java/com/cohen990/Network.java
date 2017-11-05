@@ -44,7 +44,7 @@ public class Network {
     }
 
     private double sigmoid(float valueOfNode) {
-        return 1.0/(1.0 + Math.exp(-1.0 * valueOfNode));
+        return 1.0/(1.0 + Math.exp(-20 * valueOfNode));
     }
 
     public Command getCommandFromOutputLayer(Tetris game) {

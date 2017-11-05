@@ -55,13 +55,13 @@ public class IntelligentStrategy extends Strategy {
 
         for(int i = 0; i < inputToHiddenWeights.length; i++){
             for(int j = 0; j < inputToHiddenWeights[i].length; j++){
-                inputToHiddenWeights[i][j] = random.nextGaussian()/1000;
+                inputToHiddenWeights[i][j] = random.nextGaussian()/inputLayer.length;
             }
         }
 
         for(int i = 0; i < hiddenToOutputWeights.length; i++){
             for(int j = 0; j < hiddenToOutputWeights[i].length; j++){
-                hiddenToOutputWeights[i][j] = random.nextGaussian()/1000;
+                hiddenToOutputWeights[i][j] = random.nextGaussian()/hiddenLayer.length;
             }
         }
 
