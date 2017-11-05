@@ -16,14 +16,14 @@ import javax.swing.JPanel;
 public class Tetris extends JPanel {
 // no idea what this does    private static final long serialVersionUID = -8715353373678321308L;
 
-    private final Point[][][] Tetraminos = {
-            new TetraminoI().Points,
-            new TetraminoJ().Points,
-            new TetraminoL().Points,
-            new TetraminoO().Points,
-            new TetraminoS().Points,
-            new TetraminoT().Points,
-            new TetraminoZ().Points,
+    private final Tetramino[] Tetraminos = {
+        new TetraminoI(),
+        new TetraminoJ(),
+        new TetraminoL(),
+        new TetraminoO(),
+        new TetraminoS(),
+        new TetraminoT(),
+        new TetraminoZ(),
     };
 
     private final Color[] tetraminoColors = {
@@ -67,7 +67,7 @@ public class Tetris extends JPanel {
 
     // Collision test for the dropping piece
     private boolean collidesAt(int x, int y, int rotation) {
-        for (Point p : Tetraminos[currentPiece][rotation]) {
+        for (Point p : Tetraminos[currentPiece].Points[rotation]) {
             if (well[p.x + x][p.y + y] != Color.BLACK) {
                 return true;
             }
@@ -117,7 +117,7 @@ public class Tetris extends JPanel {
     // Make the dropping piece part of the well, so it is available for
     // collision detection.
     public void fixToWell() {
-        for (Point p : Tetraminos[currentPiece][rotation]) {
+        for (Point p : Tetraminos[currentPiece].Points[rotation]) {
             well[pieceOrigin.x + p.x][pieceOrigin.y + p.y] = tetraminoColors[currentPiece];
         }
         clearRows();
@@ -172,7 +172,7 @@ public class Tetris extends JPanel {
     // Draw the falling piece
     private void drawPiece(Graphics g) {
         g.setColor(tetraminoColors[currentPiece]);
-        for (Point p : Tetraminos[currentPiece][rotation]) {
+        for (Point p : Tetraminos[currentPiece].Points[rotation]) {
             g.fillRect((p.x + pieceOrigin.x) * 26,
                     (p.y + pieceOrigin.y) * 26,
                     25, 25);
