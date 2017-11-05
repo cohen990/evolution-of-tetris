@@ -1,5 +1,6 @@
 package com.cohen990;
 
+import com.cohen990.ArtificialIntelligence.IntelligentStrategy;
 import com.cohen990.ArtificialIntelligence.RandomStrategy;
 import com.cohen990.ArtificialIntelligence.Strategy;
 import com.cohen990.Commands.*;
@@ -8,18 +9,32 @@ import com.cohen990.Tetraminos.*;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
+import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 // stolen from https://gist.github.com/DataWraith/5236083
 public class Tetris extends JPanel {
-    private final Tetramino[] Tetraminos = Tetramino.initializeTetraminos();
+    public final Tetramino[] Tetraminos = Tetramino.initializeTetraminos();
 
     public final Color[] tetraminoColors = {
             Color.cyan, Color.blue, Color.orange, Color.yellow, Color.green, Color.pink, Color.red
     };
+
+    public final int gameHeight = 24;
+    public final int gameWidth = 12;
+
+    private final Painter painter = new Painter(this);
+    private static final int GAME_CLOCK = 2;
+    private static final int AI_CLOCK = GAME_CLOCK;
 
     public Point pieceOrigin;
     public int currentPiece;
@@ -30,31 +45,27 @@ public class Tetris extends JPanel {
     public Color[][] well;
 
     private static JFrame GameFrame;
-
-    private static final int GAME_CLOCK = 1000;
-    private static final int AI_CLOCK = 1000;
     private static Thread gameThread;
     private static Thread aiThread;
-
-    private final Painter painter = new Painter(this);
+    private static ExecutorService executorService;
 
     // Creates a border around the well and initializes the dropping piece
     private void init() {
-        well = new Color[12][24];
-        for (int i = 0; i < 12; i++) {
-            for (int j = 0; j < 23; j++) {
-                if (i == 0 || i == 11 || j == 22) {
+        well = new Color[gameWidth][gameHeight];
+        for (int i = 0; i < gameWidth; i++) {
+            for (int j = 0; j < gameHeight-1; j++) {
+                if (i == 0 || i == gameWidth - 1 || j == gameHeight - 2) {
                     well[i][j] = Color.GRAY;
                 } else {
                     well[i][j] = Color.BLACK;
                 }
             }
         }
-        newPiece();
+        addNewPiece();
     }
 
     // Put a new, random piece into the dropping position
-    public void newPiece() {
+    public void addNewPiece() {
         pieceOrigin = new Point(5, 2);
         rotation = 0;
         if (nextPieces.isEmpty()) {
@@ -71,9 +82,7 @@ public class Tetris extends JPanel {
     }
 
     private void gameOver() {
-        GameFrame.dispose();
-        aiThread.stop();
-        gameThread.stop();
+        executorService.shutdownNow();
     }
 
     // Collision test for the dropping piece
@@ -87,7 +96,7 @@ public class Tetris extends JPanel {
     }
 
     public Point[][] currentTetraminoPoints() {
-        return Tetraminos[currentPiece].Points;
+        return Tetraminos[currentPiece].points;
     }
 
     // Make the dropping piece part of the well, so it is available for
@@ -97,12 +106,12 @@ public class Tetris extends JPanel {
             well[pieceOrigin.x + p.x][pieceOrigin.y + p.y] = tetraminoColors[currentPiece];
         }
         clearRows();
-        newPiece();
+        addNewPiece();
     }
 
     public void deleteRow(int row) {
         for (int j = row-1; j > 0; j--) {
-            for (int i = 1; i < 11; i++) {
+            for (int i = 1; i < gameWidth - 1; i++) {
                 well[i][j+1] = well[i][j];
             }
         }
@@ -114,9 +123,9 @@ public class Tetris extends JPanel {
         boolean gap;
         int numClears = 0;
 
-        for (int j = 21; j > 0; j--) {
+        for (int j = gameHeight - 3; j > 0; j--) {
             gap = false;
-            for (int i = 1; i < 11; i++) {
+            for (int i = 1; i < gameWidth - 1; i++) {
                 if (well[i][j] == Color.BLACK) {
                     gap = true;
                     break;
@@ -131,16 +140,16 @@ public class Tetris extends JPanel {
 
         switch (numClears) {
             case 1:
-                score += 100;
+                score += 1000;
                 break;
             case 2:
-                score += 300;
+                score += 3000;
                 break;
             case 3:
-                score += 500;
+                score += 5000;
                 break;
             case 4:
-                score += 800;
+                score += 8000;
                 break;
         }
     }
@@ -151,37 +160,103 @@ public class Tetris extends JPanel {
         painter.paintComponent(g);
     }
 
-    public static void main(String[] args) {
-        final Tetris game = new Tetris();
-        game.init();
+    public static void main(String[] args) throws InterruptedException {
+        int populationSize = 10;
 
-        initialiseGameFrame(game);
+        TetrisPlayer[] players = new TetrisPlayer[populationSize];
 
-        Strategy aiStrategy = new RandomStrategy();
+        for(int i = 0; i < populationSize; i++){
+            final Tetris game = new Tetris();
+            game.init();
 
-        aiThread = new Thread(() -> {
-            while (true) {
-                try {
-                    Thread.sleep(AI_CLOCK);
+            initialiseGameFrame(game);
+
+            Strategy aiStrategy = new IntelligentStrategy(game);
+
+            aiThread = new Thread(() -> {
+                boolean finished = false;
+                while (!finished) {
+                    try {
+                        Thread.sleep(AI_CLOCK);
+                    } catch (InterruptedException e) {
+                        finished = true;
+                    }
                     Command command = aiStrategy.pickMove(game);
                     command.execute();
-                } catch ( InterruptedException e ) {}
+                }
+            });
+
+
+            // Make the falling piece drop every second
+            gameThread = new Thread(() -> {
+                boolean finished = false;
+                while (!finished) {
+                    try {
+                        Thread.sleep(GAME_CLOCK);
+                        new DropByOne(game).execute();
+                    } catch ( InterruptedException e ) {
+                        finished = true;
+                    }
+                }
+            });
+
+            executorService = Executors.newCachedThreadPool();
+
+            executorService.execute(gameThread);
+            executorService.execute(aiThread);
+
+            executorService.awaitTermination(10, TimeUnit.SECONDS);
+
+            System.out.println("finished");
+
+            GameFrame.dispose();
+
+            players[i] = new TetrisPlayer(((IntelligentStrategy)aiStrategy).network, game.score);
+        }
+
+        Stream<TetrisPlayer> sorted =
+                Stream.of(players).sorted(Comparator.comparingLong(player -> player.score));
+
+        long unixTime = System.currentTimeMillis() / 1000L;
+
+        sorted.forEach(result -> {
+            try {
+                writeResultToFile(String.format("results\\%s\\", unixTime), result);
+            } catch (java.io.IOException e) {
+                e.printStackTrace();
             }
         });
+    }
 
-        aiThread.start();
+    private static void writeResultToFile(String pathName, TetrisPlayer element) throws IOException {
+        File directory = new File(pathName);
 
-        // Make the falling piece drop every second
-        gameThread = new Thread(() -> {
-            while (true) {
-                try {
-                    Thread.sleep(GAME_CLOCK);
-                    new DropByOne(game).execute();
-                } catch ( InterruptedException e ) {}
+        makeDirectoryIfNotExists(directory);
+
+        System.out.println(element);
+        String fileName = String.format("%s%d.txt", pathName, element.hashCode());
+        System.out.printf("using %s\n", fileName);
+        FileWriter writer = new FileWriter(fileName);
+        writer.write(element.toLongString());
+        writer.close();
+    }
+
+    private static void makeDirectoryIfNotExists(File directory) {
+        if (!directory.exists()) {
+            System.out.println("creating directory: " + directory.getName());
+            boolean result = false;
+
+            try{
+                directory.mkdir();
+                result = true;
             }
-        });
-
-        gameThread.start();
+            catch(SecurityException se){
+                //handle it
+            }
+            if(result) {
+                System.out.println("DIR created");
+            }
+        }
     }
 
     private static void initialiseGameFrame(Tetris game) {

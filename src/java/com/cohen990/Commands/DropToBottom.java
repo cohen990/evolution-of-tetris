@@ -12,6 +12,7 @@ public class DropToBottom extends Command {
         while (!game.collidesAt(game.pieceOrigin.x, game.pieceOrigin.y + 1, game.rotation)) {
             game.pieceOrigin.y += 1;
         }
+
         game.fixToWell();
         game.repaint();
     }
