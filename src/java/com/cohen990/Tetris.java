@@ -297,6 +297,10 @@ public class Tetris extends JPanel {
     }
 
     private static void writeSummary(String pathName, List<TetrisPlayer> players) throws IOException {
+        File directory = new File(pathName);
+
+        makeDirectoryIfNotExists(directory);
+
         String fileName = pathName + "summary.txt";
         FileWriter writer = new FileWriter(fileName);
 
