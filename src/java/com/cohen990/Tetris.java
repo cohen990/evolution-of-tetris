@@ -30,8 +30,8 @@ public class Tetris extends JPanel {
     public final int gameWidth = 12;
 
     private final Painter painter = new Painter(this);
-    private static final int GAME_CLOCK = 2;
-    private static final int AI_CLOCK = GAME_CLOCK;
+    private static int GAME_CLOCK = 2;
+    private static int AI_CLOCK = GAME_CLOCK;
 
     public Point pieceOrigin;
     public int currentPiece;
