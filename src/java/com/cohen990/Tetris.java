@@ -289,7 +289,7 @@ public class Tetris extends JPanel {
 
         random /= 2;
 
-        return weight * random;
+        return weight + (weight * random);
     }
 
     private static boolean shouldMutate() {
