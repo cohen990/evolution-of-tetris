@@ -2,9 +2,11 @@ package com.cohen990;
 
 public class WeightMap{
     private double[][] weights;
+    public final int length;
 
     public WeightMap(double[][] weights) {
         this.weights = weights;
+        this.length = weights.length;
     }
 
     public double[] get(int i) {

@@ -1,7 +1,6 @@
 package com.cohen990;
 
 import com.cohen990.ArtificialIntelligence.IntelligentStrategy;
-import com.cohen990.ArtificialIntelligence.RandomStrategy;
 import com.cohen990.ArtificialIntelligence.Strategy;
 import com.cohen990.Commands.*;
 import com.cohen990.Tetraminos.*;
@@ -10,13 +9,11 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -161,23 +158,26 @@ public class Tetris extends JPanel {
     }
 
     public static void main(String[] args) throws InterruptedException, IOException {
-        int populationSize = 10;
+        int populationSize = 1000;
 
-        TetrisPlayer[] players = new TetrisPlayer[populationSize];
+        List<TetrisPlayer> players = new ArrayList<>();
+
+        for(int i = 0; i < populationSize; i++){
+            players.add(new TetrisPlayer());
+        }
 
         boolean experimentIsNotComplete = true;
 
         Integer generation = 1;
 
         while(experimentIsNotComplete) {
-
             for (int i = 0; i < populationSize; i++) {
                 final Tetris game = new Tetris();
                 game.init();
 
                 initialiseGameFrame(game);
 
-                Strategy aiStrategy = new IntelligentStrategy(game);
+                Strategy aiStrategy = new IntelligentStrategy(game, players.get(i));
 
                 aiThread = new Thread(() -> {
                     boolean finished = false;
@@ -213,17 +213,17 @@ public class Tetris extends JPanel {
 
                 executorService.awaitTermination(10, TimeUnit.SECONDS);
 
-                System.out.println("finished");
+                players.get(i).evaluateFitness(game.score, game.well);
+
+//                System.out.println("finished");
 
                 GameFrame.dispose();
-
-                players[i] = new TetrisPlayer(((IntelligentStrategy) aiStrategy).network, game.score);
             }
 
             String directory = String.format("experiment1\\generation%d\\", generation);
 
-            for(int i = 0; i < players.length; i++){
-                writeResultToFile(directory, players[i]);
+            for(int i = 0; i < players.size(); i++){
+                writeResultToFile(directory, players.get(i));
             }
 
             writeSummary(directory, players);
@@ -234,21 +234,69 @@ public class Tetris extends JPanel {
         }
     }
 
-    private static TetrisPlayer[] reproduce(TetrisPlayer[] players) {
-        Stream<TetrisPlayer> playersStream = Stream.of(players);
+    private static List<TetrisPlayer> reproduce(List<TetrisPlayer> players) {
+        Stream<TetrisPlayer> playersStream = players.stream();
 
-        playersStream = playersStream.sorted(Comparator.comparingLong(o -> o.score));
+        playersStream = playersStream.sorted(Comparator.comparingLong(o -> o.fitness));
 
-        playersStream = playersStream.skip(500).collect();
+        List<TetrisPlayer> parents = playersStream.skip(players.size() / 2).collect(Collectors.toList());
 
-        TetrisPlayer[] children = new TetrisPlayer[500];
+        List<TetrisPlayer> children = new ArrayList<>();
 
+        for(int i = 0; i < parents.size(); i++){
+            children.add(getChildFor(parents.get(i)));
+        }
 
+        parents.addAll(children);
 
-        return players;
+        return parents;
     }
 
-    private static void writeSummary(String pathName, TetrisPlayer[] players) throws IOException {
+    private static TetrisPlayer getChildFor(TetrisPlayer parent) {
+        Network network = new Network();
+
+        network.inputLayer = parent.network.inputLayer;
+        network.hiddenLayer = parent.network.hiddenLayer;
+        network.outputLayer = parent.network.outputLayer;
+
+        network.inputToHidden = evolve(parent.network.inputToHidden);
+        network.hiddenToOutput = evolve(parent.network.hiddenToOutput);
+
+        TetrisPlayer child = new TetrisPlayer(network);
+
+        return child;
+    }
+
+    private static WeightMap evolve(WeightMap weights) {
+        double[][] newWeights = new double[weights.length][weights.get(0).length];
+        for(int i = 0; i < weights.length; i++){
+            for(int j = 0; j < weights.get(i).length; j++){
+                double weight = weights.get(i)[j];
+                if(shouldMutate()){
+                    weight = mutate(weight);
+                }
+                newWeights[i][j] = weight;
+            }
+        }
+
+        return new WeightMap(newWeights);
+    }
+
+    private static double mutate(double weight) {
+        float random = new Random().nextFloat();
+
+        random -= 0.5;
+
+        random /= 2;
+
+        return weight * random;
+    }
+
+    private static boolean shouldMutate() {
+        return new Random().nextGaussian() > .9;
+    }
+
+    private static void writeSummary(String pathName, List<TetrisPlayer> players) throws IOException {
         String fileName = pathName + "summary.txt";
         FileWriter writer = new FileWriter(fileName);
 
@@ -258,21 +306,21 @@ public class Tetris extends JPanel {
         long min = Long.MAX_VALUE;
         long total = 0;
 
-        for(int i = 0; i < players.length; i++){
-            TetrisPlayer player = players[i];
-            long score = player.score;
-            if(score > max){
-                max = score;
+        for(int i = 0; i < players.size(); i++){
+            TetrisPlayer player = players.get(i);
+            long fitness = player.fitness;
+            if(fitness > max){
+                max = fitness;
                 maxHash = player.hashCode();
             }
-            if(score < min){
-                min = score;
+            if(fitness < min){
+                min = fitness;
                 minHash = player.hashCode();
             }
-            total += score;
+            total += fitness;
         }
 
-        float average = (float) total/ players.length;
+        float average = (float) total/ players.size();
 
         writer.write(String.format("Max: %d - player: %d\n", max, maxHash));
         writer.write(String.format("Min: %d - player: %d\n", min, minHash));
