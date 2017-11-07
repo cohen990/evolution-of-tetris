@@ -30,7 +30,7 @@ public class Painter {
 
         // Display the score
         g.setColor(Color.WHITE);
-        g.drawString("" + game.score, 19*12, 25);
+        g.drawString("" + game.playerIndex, 19*12, 25);
 
         // Draw the currently falling piece
         drawPiece(g);

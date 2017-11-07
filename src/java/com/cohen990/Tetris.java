@@ -32,6 +32,7 @@ public class Tetris extends JPanel {
     private final Painter painter = new Painter(this);
     private static int GAME_CLOCK = 2;
     private static int AI_CLOCK = GAME_CLOCK;
+    public final int playerIndex;
 
     public Point pieceOrigin;
     public int currentPiece;
@@ -45,6 +46,10 @@ public class Tetris extends JPanel {
     private static Thread gameThread;
     private static Thread aiThread;
     private static ExecutorService executorService;
+
+    public Tetris(int playerIndex) {
+        this.playerIndex = playerIndex;
+    }
 
     // Creates a border around the well and initializes the dropping piece
     private void init() {
@@ -137,16 +142,16 @@ public class Tetris extends JPanel {
 
         switch (numClears) {
             case 1:
-                score += 1000;
+                score += 10000;
                 break;
             case 2:
-                score += 3000;
+                score += 30000;
                 break;
             case 3:
-                score += 5000;
+                score += 50000;
                 break;
             case 4:
-                score += 8000;
+                score += 80000;
                 break;
         }
     }
@@ -172,7 +177,8 @@ public class Tetris extends JPanel {
 
         while(experimentIsNotComplete) {
             for (int i = 0; i < populationSize; i++) {
-                final Tetris game = new Tetris();
+//                System.out.printf("player %d\n", i);
+                final Tetris game = new Tetris(i);
                 game.init();
 
                 initialiseGameFrame(game);
@@ -222,9 +228,9 @@ public class Tetris extends JPanel {
 
             String directory = String.format("experiment1\\generation%d\\", generation);
 
-            for(int i = 0; i < players.size(); i++){
-                writeResultToFile(directory, players.get(i));
-            }
+//            for(int i = 0; i < players.size(); i++){
+//                writeResultToFile(directory, players.getWeight(i));
+//            }
 
             writeSummary(directory, players);
 
@@ -268,10 +274,10 @@ public class Tetris extends JPanel {
     }
 
     private static WeightMap evolve(WeightMap weights) {
-        double[][] newWeights = new double[weights.length][weights.get(0).length];
-        for(int i = 0; i < weights.length; i++){
-            for(int j = 0; j < weights.get(i).length; j++){
-                double weight = weights.get(i)[j];
+        double[][] newWeights = new double[weights.length][weights.getWeight(0).length];
+        for(int i = 0; i < weights.length; i++) {
+            for(int j = 0; j < weights.getWeight(i).length; j++){
+                double weight = weights.getWeight(i)[j];
                 if(shouldMutate()){
                     weight = mutate(weight);
                 }
@@ -279,15 +285,22 @@ public class Tetris extends JPanel {
             }
         }
 
-        return new WeightMap(newWeights);
+        double[] newBiases = new double[weights.biasesLength];
+
+        for(int i = 0; i < weights.biasesLength; i++) {
+            double bias = weights.getBias(i);
+            if(shouldMutate()) {
+                bias = mutate(bias);
+            }
+
+            newBiases[i] = bias;
+        }
+
+        return new WeightMap(newWeights, newBiases);
     }
 
     private static double mutate(double weight) {
-        float random = new Random().nextFloat();
-
-        random -= 0.5;
-
-        random /= 2;
+        double random = new Random().nextGaussian();
 
         return weight + (weight * random);
     }

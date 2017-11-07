@@ -2,7 +2,6 @@ package com.cohen990.ArtificialIntelligence;
 
 import com.cohen990.*;
 import com.cohen990.Commands.Command;
-import com.cohen990.Commands.NullCommand;
 
 import java.awt.*;
 import java.util.Random;
@@ -38,12 +37,18 @@ public class IntelligentStrategy extends Strategy {
         if(player.network == null) {
             Network network = new Network();
             double[][] inputToHiddenWeights = new double[sizeOfHiddenLayer][sizeOfInputLayer];
+            double[] hiddenBiases = new double[sizeOfHiddenLayer];
             double[][] hiddenToOutputWeights = new double[sizeOfOutputLayer][sizeOfHiddenLayer];
+            double[] outputBiases = new double[sizeOfOutputLayer];
 
             for(int i = 0; i < inputToHiddenWeights.length; i++){
                 for(int j = 0; j < inputToHiddenWeights[i].length; j++){
                     inputToHiddenWeights[i][j] = random.nextGaussian()/sizeOfInputLayer;
                 }
+            }
+
+            for(int i = 0; i < hiddenBiases.length; i++){
+                hiddenBiases[i] = random.nextGaussian()/10000;
             }
 
             for(int i = 0; i < hiddenToOutputWeights.length; i++){
@@ -52,8 +57,12 @@ public class IntelligentStrategy extends Strategy {
                 }
             }
 
-            network.inputToHidden = new WeightMap(inputToHiddenWeights);
-            network.hiddenToOutput = new WeightMap(hiddenToOutputWeights);
+            for(int i = 0; i < outputBiases.length; i++){
+                outputBiases[i] = random.nextGaussian()/10000;
+            }
+
+            network.inputToHidden = new WeightMap(inputToHiddenWeights, hiddenBiases);
+            network.hiddenToOutput = new WeightMap(hiddenToOutputWeights, outputBiases);
 
             player.network = network;
         }
@@ -114,7 +123,7 @@ public class IntelligentStrategy extends Strategy {
 
         Command bestMove = evaluateBestMove(game);
 
-        //System.out.printf("Chosen %s!\n", bestMove.getClass().getSimpleName());
+//        System.out.printf("Chosen %s!\n", bestMove.getClass().getSimpleName());
 
         return bestMove;
     }

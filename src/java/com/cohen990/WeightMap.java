@@ -2,15 +2,23 @@ package com.cohen990;
 
 public class WeightMap{
     private double[][] weights;
+    private double[] biases;
     public final int length;
+    public final int biasesLength;
 
-    public WeightMap(double[][] weights) {
+    public WeightMap(double[][] weights, double[] biases) {
         this.weights = weights;
         this.length = weights.length;
+        this.biases = biases;
+        this.biasesLength = biases.length;
     }
 
-    public double[] get(int i) {
+    public double[] getWeight(int i) {
         return weights[i];
+    }
+
+    public double getBias(int i) {
+        return biases[i];
     }
 
     @Override
