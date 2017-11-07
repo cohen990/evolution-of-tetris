@@ -10,7 +10,6 @@ public class Network {
 
     public WeightMap inputToHidden;
     public WeightMap hiddenToOutput;
-    private Node commandFromOutputLayer;
 
     public Command evaluate(Tetris game) {
         evaluateHiddenLayer();
@@ -21,24 +20,26 @@ public class Network {
 
     private void evaluateHiddenLayer() {
         for(int i = 0; i < hiddenLayer.length; i++) {
-            Node node = evaluateNodeAgainstLayerWithWeights(inputLayer, inputToHidden.get(i), "hidden");
+            Node node = evaluateNodeAgainstLayerWithWeightsAndBias(inputLayer, inputToHidden.getWeight(i), inputToHidden.getBias(i), "hidden");
             hiddenLayer.set(i, node);
         }
     }
 
     private void evaluateOutputLayer() {
         for(int i = 0; i < outputLayer.length; i++){
-            Node node = evaluateNodeAgainstLayerWithWeights(hiddenLayer, hiddenToOutput.get(i), "output");
+            Node node = evaluateNodeAgainstLayerWithWeightsAndBias(hiddenLayer, hiddenToOutput.getWeight(i), hiddenToOutput.getBias(i), "output");
             outputLayer.set(i, node);
         }
     }
 
-    private Node evaluateNodeAgainstLayerWithWeights(Layer layer, double[] weights, String comment) {
+    private Node evaluateNodeAgainstLayerWithWeightsAndBias(Layer layer, double[] weights, double bias, String comment) {
         float valueOfNode = 0;
 
         for(int i = 0; i < layer.length; i++){
             valueOfNode += (layer.get(i).value * weights[i]);
         }
+
+        valueOfNode += bias;
 
         return new Node(sigmoid(valueOfNode), comment);
     }
