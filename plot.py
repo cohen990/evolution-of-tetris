@@ -27,7 +27,10 @@ for directory in route:
 
 generations, average_results, max_results, min_results = zip(*sorted(zip(generations, average_results, max_results, min_results)))
 
+pyplot.subplot(211)
 pyplot.plot(generations, average_results)
-#pyplot.plot(generations, max_results)
-#pyplot.plot(generations, min_results)
+pyplot.plot(generations, min_results)
+
+pyplot.subplot(212);
+pyplot.plot(generations, max_results)
 pyplot.show()
