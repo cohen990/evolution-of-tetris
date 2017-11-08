@@ -43,9 +43,7 @@ public class Tetris extends JPanel {
     public Color[][] well;
 
     private static JFrame GameFrame;
-    private static Thread gameThread;
-    private static Thread aiThread;
-    private static ExecutorService executorService;
+    public boolean finished = false;
 
     public Tetris(int playerIndex) {
         this.playerIndex = playerIndex;
@@ -64,6 +62,7 @@ public class Tetris extends JPanel {
             }
         }
         addNewPiece();
+        finished = false;
     }
 
     // Put a new, random piece into the dropping position
@@ -84,7 +83,7 @@ public class Tetris extends JPanel {
     }
 
     private void gameOver() {
-        executorService.shutdownNow();
+        finished = true;
     }
 
     // Collision test for the dropping piece
@@ -185,39 +184,11 @@ public class Tetris extends JPanel {
 
                 Strategy aiStrategy = new IntelligentStrategy(game, players.get(i));
 
-                aiThread = new Thread(() -> {
-                    boolean finished = false;
-                    while (!finished) {
-                        try {
-                            Thread.sleep(AI_CLOCK);
-                        } catch (InterruptedException e) {
-                            finished = true;
-                        }
-                        Command command = aiStrategy.pickMove(game);
-                        command.execute();
-                    }
-                });
-
-
-                // Make the falling piece drop every second
-                gameThread = new Thread(() -> {
-                    boolean finished = false;
-                    while (!finished) {
-                        try {
-                            Thread.sleep(GAME_CLOCK);
-                            new DropByOne(game).execute();
-                        } catch (InterruptedException e) {
-                            finished = true;
-                        }
-                    }
-                });
-
-                executorService = Executors.newCachedThreadPool();
-
-                executorService.execute(gameThread);
-                executorService.execute(aiThread);
-
-                executorService.awaitTermination(10, TimeUnit.SECONDS);
+                while (!game.finished) {
+                    Command command = aiStrategy.pickMove(game);
+                    command.execute();
+                    new DropByOne(game).execute();
+                }
 
                 players.get(i).evaluateFitness(game.score, game.well);
 
@@ -226,7 +197,7 @@ public class Tetris extends JPanel {
                 GameFrame.dispose();
             }
 
-            String directory = String.format("experiment1\\generation%d\\", generation);
+            String directory = String.format("experiment2\\generation%d\\", generation);
 
 //            for(int i = 0; i < players.size(); i++){
 //                writeResultToFile(directory, players.getWeight(i));

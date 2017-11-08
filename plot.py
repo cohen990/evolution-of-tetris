@@ -8,7 +8,10 @@ average_results = []
 max_results = []
 min_results = []
 
-working_directory = os.getcwd() + "\\experiment1";
+print("Which experiment do you want me to plot? (1/2/3 etc)")
+experiment_number = input()
+
+working_directory = os.getcwd() + "\\experiment" + experiment_number;
 route = os.listdir(working_directory);
 route.sort()
 for directory in route:
@@ -28,9 +31,16 @@ for directory in route:
 generations, average_results, max_results, min_results = zip(*sorted(zip(generations, average_results, max_results, min_results)))
 
 pyplot.subplot(211)
-pyplot.plot(generations, average_results)
-pyplot.plot(generations, min_results)
+average_plot, = pyplot.plot(generations, average_results, label="Average")
+min_plot, = pyplot.plot(generations, min_results, label="Min")
+pyplot.xlabel("generation")
+pyplot.ylabel("fitness")
 
-pyplot.subplot(212);
-pyplot.plot(generations, max_results)
+pyplot.legend(handles=[average_plot, min_plot])
+
+pyplot.subplot(212)
+pyplot.xlabel("generation")
+pyplot.ylabel("fitness")
+max_plot, = pyplot.plot(generations, max_results, label="Max")
+pyplot.legend(handles=[max_plot])
 pyplot.show()
