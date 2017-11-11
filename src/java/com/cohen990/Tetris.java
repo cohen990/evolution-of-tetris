@@ -202,7 +202,7 @@ public class Tetris extends JPanel {
 //                System.out.println("finished");
             }
 
-            String directory = String.format("experiment2\\generation%d\\", generation);
+            String directory = String.format("experiment3\\generation%d\\", generation);
 
 //            for(int i = 0; i < players.size(); i++){
 //                writeResultToFile(directory, players.getWeight(i));
@@ -276,13 +276,14 @@ public class Tetris extends JPanel {
     }
 
     private static double mutate(double weight) {
-        double random = new Random().nextGaussian();
+        double random = new Random().nextGaussian()/3;
 
         return weight + (weight * random);
     }
 
     private static boolean shouldMutate() {
-        return new Random().nextGaussian() > .9;
+        double random = new Random().nextDouble();
+        return Math.abs(random) > 0.9;
     }
 
     private static void writeSummary(String pathName, List<TetrisPlayer> players) throws IOException {
