@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 import numpy
 import matplotlib.pyplot as pyplot
 
@@ -8,8 +9,13 @@ average_results = []
 max_results = []
 min_results = []
 
-print("Which experiment do you want me to plot? (1/2/3 etc)")
-experiment_number = input()
+experiment_number = 1
+
+if sys.argv[1]:
+    experiment_number = sys.argv[1]
+else:
+    print("Which experiment do you want me to plot? (1/2/3 etc)")
+    experiment_number = input()
 
 working_directory = os.getcwd() + "\\experiment" + experiment_number;
 route = os.listdir(working_directory);
@@ -43,4 +49,9 @@ pyplot.xlabel("generation")
 pyplot.ylabel("fitness")
 max_plot, = pyplot.plot(generations, max_results, label="Max")
 pyplot.legend(handles=[max_plot])
+
+pyplot.setp(min_plot, linewidth=0.2)
+pyplot.setp(max_plot, linewidth=0.2)
+pyplot.setp(average_plot, linewidth=0.2)
+
 pyplot.show()

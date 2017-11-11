@@ -44,6 +44,7 @@ public class Tetris extends JPanel {
 
     private static JFrame GameFrame;
     public boolean finished = false;
+    private boolean shouldDraw = false;
 
     public Tetris(int playerIndex) {
         this.playerIndex = playerIndex;
@@ -63,6 +64,7 @@ public class Tetris extends JPanel {
         }
         addNewPiece();
         finished = false;
+        shouldDraw = false;
     }
 
     // Put a new, random piece into the dropping position
@@ -158,7 +160,9 @@ public class Tetris extends JPanel {
     @Override
     public void paintComponent(Graphics g)
     {
-        painter.paintComponent(g);
+        if(shouldDraw) {
+            painter.paintComponent(g);
+        }
     }
 
     public static void main(String[] args) throws InterruptedException, IOException {
@@ -180,7 +184,10 @@ public class Tetris extends JPanel {
                 final Tetris game = new Tetris(i);
                 game.init();
 
-                initialiseGameFrame(game);
+                if(i%10 == 0){
+                    game.shouldDraw = true;
+                    initialiseGameFrame(game);
+                }
 
                 Strategy aiStrategy = new IntelligentStrategy(game, players.get(i));
 
@@ -193,8 +200,6 @@ public class Tetris extends JPanel {
                 players.get(i).evaluateFitness(game.score, game.well);
 
 //                System.out.println("finished");
-
-                GameFrame.dispose();
             }
 
             String directory = String.format("experiment2\\generation%d\\", generation);
@@ -349,6 +354,9 @@ public class Tetris extends JPanel {
     }
 
     private static void initialiseGameFrame(Tetris game) {
+        if(GameFrame != null) {
+            GameFrame.dispose();
+        }
         GameFrame = new JFrame("Tetris");
         GameFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         GameFrame.setSize(12*26+10, 26*23+25);
