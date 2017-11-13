@@ -20,14 +20,14 @@ public class Network {
 
     private void evaluateHiddenLayer() {
         for(int i = 0; i < hiddenLayer.length; i++) {
-            Node node = evaluateNodeAgainstLayerWithWeightsAndBias(inputLayer, inputToHidden.getWeight(i), inputToHidden.getBias(i), "hidden");
+            Node node = evaluateNodeAgainstLayerWithWeightsAndBias(inputLayer, inputToHidden.getWeights(i), inputToHidden.getBias(i), "hidden");
             hiddenLayer.set(i, node);
         }
     }
 
     private void evaluateOutputLayer() {
         for(int i = 0; i < outputLayer.length; i++){
-            Node node = evaluateNodeAgainstLayerWithWeightsAndBias(hiddenLayer, hiddenToOutput.getWeight(i), hiddenToOutput.getBias(i), "output");
+            Node node = evaluateNodeAgainstLayerWithWeightsAndBias(hiddenLayer, hiddenToOutput.getWeights(i), hiddenToOutput.getBias(i), "output");
             outputLayer.set(i, node);
         }
     }

@@ -11,11 +11,15 @@ min_results = []
 
 experiment_number = 1
 
-if sys.argv[1]:
+if len(sys.argv) >= 2:
     experiment_number = sys.argv[1]
 else:
     print("Which experiment do you want me to plot? (1/2/3 etc)")
     experiment_number = input()
+
+take = False
+if len(sys.argv) >= 3:
+    take = int(sys.argv[2])
 
 working_directory = os.getcwd() + "\\experiment" + experiment_number;
 route = os.listdir(working_directory);
@@ -35,6 +39,9 @@ for directory in route:
   min_results.append(float(compiled.findall(lines)[0]))
 
 generations, average_results, max_results, min_results = zip(*sorted(zip(generations, average_results, max_results, min_results)))
+
+if take:
+    generations, average_results, max_results, min_results = generations[:take], average_results[:take], max_results[:take], min_results[:take]
 
 pyplot.subplot(211)
 average_plot, = pyplot.plot(generations, average_results, label="Average")
