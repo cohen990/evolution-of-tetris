@@ -3,6 +3,9 @@ package com.cohen990;
 import com.cohen990.ArtificialIntelligence.IntelligentStrategy;
 import com.cohen990.ArtificialIntelligence.Strategy;
 import com.cohen990.Commands.*;
+import com.cohen990.Reproduction.ChildPair;
+import com.cohen990.Reproduction.Crossover;
+import com.cohen990.Reproduction.Mutator;
 import com.cohen990.Tetraminos.*;
 
 import java.awt.Color;
@@ -10,9 +13,6 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.io.*;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.swing.JFrame;
@@ -202,10 +202,10 @@ public class Tetris extends JPanel {
 //                System.out.println("finished");
             }
 
-            String directory = String.format("experiment3\\generation%d\\", generation);
+            String directory = String.format("experiment5\\generation%d\\", generation);
 
 //            for(int i = 0; i < players.size(); i++){
-//                writeResultToFile(directory, players.getWeight(i));
+//                writeResultToFile(directory, players.getWeights(i));
 //            }
 
             writeSummary(directory, players);
@@ -223,67 +223,27 @@ public class Tetris extends JPanel {
 
         List<TetrisPlayer> parents = playersStream.skip(players.size() / 2).collect(Collectors.toList());
 
+        Collections.shuffle(parents);
+
         List<TetrisPlayer> children = new ArrayList<>();
 
-        for(int i = 0; i < parents.size(); i++){
-            children.add(getChildFor(parents.get(i)));
+        Crossover crossover = new Crossover();
+
+        for(int i = 0; i < parents.size(); i+=2){
+            ChildPair siblings;
+            if(i == parents.size() - 1){
+                siblings = crossover.getChildren(parents.get(i), parents.get(i));
+            } else {
+                siblings = crossover.getChildren(parents.get(i), parents.get(i+1));
+            }
+
+            children.add(siblings.first);
+            children.add(siblings.second);
         }
 
         parents.addAll(children);
 
         return parents;
-    }
-
-    private static TetrisPlayer getChildFor(TetrisPlayer parent) {
-        Network network = new Network();
-
-        network.inputLayer = parent.network.inputLayer;
-        network.hiddenLayer = parent.network.hiddenLayer;
-        network.outputLayer = parent.network.outputLayer;
-
-        network.inputToHidden = evolve(parent.network.inputToHidden);
-        network.hiddenToOutput = evolve(parent.network.hiddenToOutput);
-
-        TetrisPlayer child = new TetrisPlayer(network);
-
-        return child;
-    }
-
-    private static WeightMap evolve(WeightMap weights) {
-        double[][] newWeights = new double[weights.length][weights.getWeight(0).length];
-        for(int i = 0; i < weights.length; i++) {
-            for(int j = 0; j < weights.getWeight(i).length; j++){
-                double weight = weights.getWeight(i)[j];
-                if(shouldMutate()){
-                    weight = mutate(weight);
-                }
-                newWeights[i][j] = weight;
-            }
-        }
-
-        double[] newBiases = new double[weights.biasesLength];
-
-        for(int i = 0; i < weights.biasesLength; i++) {
-            double bias = weights.getBias(i);
-            if(shouldMutate()) {
-                bias = mutate(bias);
-            }
-
-            newBiases[i] = bias;
-        }
-
-        return new WeightMap(newWeights, newBiases);
-    }
-
-    private static double mutate(double weight) {
-        double random = new Random().nextGaussian()/3;
-
-        return weight + (weight * random);
-    }
-
-    private static boolean shouldMutate() {
-        double random = new Random().nextDouble();
-        return Math.abs(random) > 0.9;
     }
 
     private static void writeSummary(String pathName, List<TetrisPlayer> players) throws IOException {

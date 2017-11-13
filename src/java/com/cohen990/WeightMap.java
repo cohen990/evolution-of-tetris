@@ -13,7 +13,7 @@ public class WeightMap{
         this.biasesLength = biases.length;
     }
 
-    public double[] getWeight(int i) {
+    public double[] getWeights(int i) {
         return weights[i];
     }
 
