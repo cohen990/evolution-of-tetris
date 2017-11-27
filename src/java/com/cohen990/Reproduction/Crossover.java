@@ -18,20 +18,25 @@ public class Crossover {
         TetrisPlayer child2 = new TetrisPlayer();
 
         WeightMapPair inputToHiddenPair = getWeightMaps(parent1.network.inputToHidden1, parent2.network.inputToHidden1);
-        WeightMapPair hiddenToOutputPair = getWeightMaps(parent1.network.hidden2ToOutput, parent2.network.hidden2ToOutput);
+        WeightMapPair hidden1ToHidden2Pair = getWeightMaps(parent1.network.hidden1ToHidden2, parent2.network.hidden1ToHidden2);
+        WeightMapPair hidden2ToOutputPair = getWeightMaps(parent1.network.hidden2ToOutput, parent2.network.hidden2ToOutput);
 
         child1.network = new Network();
         child1.network.inputToHidden1 = inputToHiddenPair.first;
-        child1.network.hidden2ToOutput = hiddenToOutputPair.first;
+        child1.network.hidden1ToHidden2 = hidden1ToHidden2Pair.first;
+        child1.network.hidden2ToOutput = hidden2ToOutputPair.first;
         child1.network.inputLayer = parent1.network.inputLayer;
         child1.network.hiddenLayer1 = parent1.network.hiddenLayer1;
+        child1.network.hiddenLayer2 = parent1.network.hiddenLayer2;
         child1.network.outputLayer = parent1.network.outputLayer;
 
         child2.network = new Network();
         child2.network.inputToHidden1 = inputToHiddenPair.second;
-        child2.network.hidden2ToOutput = hiddenToOutputPair.second;
+        child2.network.hidden1ToHidden2 = hidden1ToHidden2Pair.second;
+        child2.network.hidden2ToOutput = hidden2ToOutputPair.second;
         child2.network.inputLayer = parent1.network.inputLayer;
         child2.network.hiddenLayer1 = parent1.network.hiddenLayer1;
+        child2.network.hiddenLayer2 = parent1.network.hiddenLayer2;
         child2.network.outputLayer = parent1.network.outputLayer;
 
         return new ChildPair(child1, child2);

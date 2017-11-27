@@ -84,10 +84,5 @@ public class Network {
                 return new NullCommand(game);
         }
     }
-
-    @Override
-    public String toString() {
-        return String.format("inputToHidden1:%s\nhidden2ToOutput:%s", inputToHidden1, hidden2ToOutput);
-    }
 }
 
