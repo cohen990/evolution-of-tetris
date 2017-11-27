@@ -37,8 +37,13 @@ public class IntelligentStrategy extends Strategy {
 
         ensurePlayerHasNetwork(player, random, sizeOfHiddenLayer, sizeOfOutputLayer);
 
+        initializeLayers(player, sizeOfHiddenLayer);
+    }
+
+    private void initializeLayers(TetrisPlayer player, int sizeOfHiddenLayer) {
         Node[] inputLayer = new Node[sizeOfInputLayer];
-        Node[] hiddenLayer = new Node[sizeOfHiddenLayer];
+        Node[] hiddenLayer1 = new Node[sizeOfHiddenLayer];
+        Node[] hiddenLayer2 = new Node[sizeOfHiddenLayer];
         Node[] outputLayer = new Node[numberOfDistinctCommands];
 
         for(int i = 0; i < inputLayer.length; i++){
@@ -46,7 +51,8 @@ public class IntelligentStrategy extends Strategy {
         }
 
         player.network.inputLayer = new Layer(inputLayer);
-        player.network.hiddenLayer1 = new Layer(hiddenLayer);
+        player.network.hiddenLayer1 = new Layer(hiddenLayer1);
+        player.network.hiddenLayer2 = new Layer(hiddenLayer2);
         player.network.outputLayer = new Layer(outputLayer);
     }
 
@@ -55,13 +61,16 @@ public class IntelligentStrategy extends Strategy {
             Network network = new Network();
 
             double[][] inputToHiddenWeights = getEmptyWeights(random, sizeOfInputLayer, sizeOfHiddenLayer);
-            double[][] hiddenToOutputWeights = getEmptyWeights(random, sizeOfHiddenLayer, sizeOfOutputLayer);
+            double[][] hidden1ToHidden2Weights = getEmptyWeights(random, sizeOfHiddenLayer, sizeOfHiddenLayer);
+            double[][] hidden2ToOutputWeights = getEmptyWeights(random, sizeOfHiddenLayer, sizeOfOutputLayer);
 
-            double[] hiddenBiases = getEmptyBiases(random, sizeOfHiddenLayer);
+            double[] hidden1Biases = getEmptyBiases(random, sizeOfHiddenLayer);
+            double[] hidden2Biases = getEmptyBiases(random, sizeOfHiddenLayer);
             double[] outputBiases = getEmptyBiases(random, sizeOfOutputLayer);
 
-            network.inputToHidden1 = new WeightMap(inputToHiddenWeights, hiddenBiases);
-            network.hidden2ToOutput = new WeightMap(hiddenToOutputWeights, outputBiases);
+            network.inputToHidden1 = new WeightMap(inputToHiddenWeights, hidden1Biases);
+            network.hidden1ToHidden2 = new WeightMap(hidden1ToHidden2Weights, hidden2Biases);
+            network.hidden2ToOutput = new WeightMap(hidden2ToOutputWeights, outputBiases);
 
             player.network = network;
         }
@@ -87,8 +96,47 @@ public class IntelligentStrategy extends Strategy {
 
     @Override
     public Command pickMove(Tetris game) {
-        int tetraminoValue = game.Tetraminos[game.currentPiece].numericalValue;
+        populateInputLayer(game);
+        return evaluateBestMove(game);
+    }
 
+    private void populateInputLayer(Tetris game) {
+        enterWellIntoInputLayer(game);
+        enterTetrominoTypeIntoInputLayer(game.Tetraminos[game.currentPiece].numericalValue);
+        int indexOfYCoordinate = enterCoordinatesIntoInputLayer(game);
+        enterRotationIntoInputLayer(game, indexOfYCoordinate);
+    }
+
+    private void enterRotationIntoInputLayer(Tetris game, int indexOfYCoordinate) {
+        int startOfRotations = indexOfYCoordinate + 1;
+        for(int i = startOfRotations; i < sizeOfInputLayer; i++){
+            if(i == startOfRotations + game.rotation) {
+                player.network.inputLayer.set(i, new Node(1, "rotation"));
+            } else {
+                player.network.inputLayer.set(i, new Node("rotation"));
+            }
+        }
+    }
+
+    private int enterCoordinatesIntoInputLayer(Tetris game) {
+        int indexOfXCoordinate = sizeOfInputLayer - 6;
+        int indexOfYCoordinate = sizeOfInputLayer - 5;
+        player.network.inputLayer.set(indexOfXCoordinate, new Node(game.pieceOrigin.x, "x-coordinate"));
+        player.network.inputLayer.set(indexOfYCoordinate, new Node(game.pieceOrigin.y, "y-coordinate"));
+        return indexOfYCoordinate;
+    }
+
+    private void enterTetrominoTypeIntoInputLayer(int tetraminoValue) {
+        for(int i = sizeOfWell; i < numberOfDistinctTetraminos + sizeOfWell; i++){
+            if(i == sizeOfWell + tetraminoValue){
+                player.network.inputLayer.set(i, new Node(1, "tetramino"));
+            } else{
+                player.network.inputLayer.set(i, new Node("tetramino"));
+            }
+        }
+    }
+
+    private void enterWellIntoInputLayer(Tetris game) {
         for(int i = 0; i < widthOfWell; i++){
             for(int j = 0; j < heightOfWell; j++){
                 int currentNodeIndex = getCurrentNodeIndex(i, j, heightOfWell);
@@ -99,38 +147,6 @@ public class IntelligentStrategy extends Strategy {
                 }
             }
         }
-        
-        for(int i = sizeOfWell; i < numberOfDistinctTetraminos + sizeOfWell; i++){
-            if(i == sizeOfWell + tetraminoValue){
-                player.network.inputLayer.set(i, new Node(1, "tetramino"));
-            } else{
-                player.network.inputLayer.set(i, new Node("tetramino"));
-            }
-        }
-
-        int indexOfXCoordinate = sizeOfInputLayer - 6;
-        int indexOfYCoordinate = sizeOfInputLayer - 5;
-        player.network.inputLayer.set(indexOfXCoordinate, new Node(game.pieceOrigin.x, "x-coordinate"));
-        player.network.inputLayer.set(indexOfYCoordinate, new Node(game.pieceOrigin.y, "y-coordinate"));
-
-        int startOfRotations = indexOfYCoordinate + 1;
-        for(int i = startOfRotations; i < sizeOfInputLayer; i++){
-            if(i == startOfRotations + game.rotation) {
-                player.network.inputLayer.set(i, new Node(1, "rotation"));
-            } else {
-                player.network.inputLayer.set(i, new Node("rotation"));
-            }
-        }
-
-//        for(int i = 0; i < inputLayer.length; i++){
-//            System.out.printf("%d: %s\n", i, inputLayer[i]);
-//        }
-
-        Command bestMove = evaluateBestMove(game);
-
-//        System.out.printf("Chosen %s!\n", bestMove.getClass().getSimpleName());
-
-        return bestMove;
     }
 
     private Command evaluateBestMove(Tetris game) {

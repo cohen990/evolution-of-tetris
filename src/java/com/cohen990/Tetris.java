@@ -177,7 +177,6 @@ public class Tetris extends JPanel {
 
         while(experimentIsNotComplete) {
             for (int i = 0; i < populationSize; i++) {
-//                System.out.printf("player %d\n", i);
                 final Tetris game = new Tetris(i);
                 game.init();
 
@@ -195,15 +194,9 @@ public class Tetris extends JPanel {
                 }
 
                 players.get(i).evaluateFitness(game.score, game.well);
-
-//                System.out.println("finished");
             }
 
-            String directory = String.format("experiment5\\generation%d\\", generation);
-
-//            for(int i = 0; i < players.size(); i++){
-//                writeResultToFile(directory, players.getWeights(i));
-//            }
+            String directory = String.format("experiment6\\generation%d\\", generation);
 
             writeSummary(directory, players);
 
