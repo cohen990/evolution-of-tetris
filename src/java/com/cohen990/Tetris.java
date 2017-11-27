@@ -5,7 +5,6 @@ import com.cohen990.ArtificialIntelligence.Strategy;
 import com.cohen990.Commands.*;
 import com.cohen990.Reproduction.ChildPair;
 import com.cohen990.Reproduction.Crossover;
-import com.cohen990.Reproduction.Mutator;
 import com.cohen990.Tetraminos.*;
 
 import java.awt.Color;
@@ -30,8 +29,6 @@ public class Tetris extends JPanel {
     public final int gameWidth = 12;
 
     private final Painter painter = new Painter(this);
-    private static int GAME_CLOCK = 2;
-    private static int AI_CLOCK = GAME_CLOCK;
     public final int playerIndex;
 
     public Point pieceOrigin;

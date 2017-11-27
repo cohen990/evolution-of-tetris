@@ -23,49 +23,19 @@ public class IntelligentStrategy extends Strategy {
 
     private void initializeNeuralNetwork(Tetris game, TetrisPlayer player) {
         Random random = new Random();
-        widthOfWell = game.well.length - 2;
-        heightOfWell = game.well[0].length - 2;
-        sizeOfWell = widthOfWell * heightOfWell;
-        numberOfDistinctCommands = 7;
-        sizeOfInputLayer = sizeOfWell + 13;
         int sizeOfHiddenLayer = 1000;
+        numberOfDistinctCommands = 7;
         int sizeOfOutputLayer = numberOfDistinctCommands;
 
         if(player == null)
             player = new TetrisPlayer();
 
-        if(player.network == null) {
-            Network network = new Network();
-            double[][] inputToHiddenWeights = new double[sizeOfHiddenLayer][sizeOfInputLayer];
-            double[] hiddenBiases = new double[sizeOfHiddenLayer];
-            double[][] hiddenToOutputWeights = new double[sizeOfOutputLayer][sizeOfHiddenLayer];
-            double[] outputBiases = new double[sizeOfOutputLayer];
+        widthOfWell = game.well.length - 2;
+        heightOfWell = game.well[0].length - 2;
+        sizeOfWell = widthOfWell * heightOfWell;
+        sizeOfInputLayer = sizeOfWell + 13;
 
-            for(int i = 0; i < inputToHiddenWeights.length; i++){
-                for(int j = 0; j < inputToHiddenWeights[i].length; j++){
-                    inputToHiddenWeights[i][j] = random.nextGaussian()/sizeOfInputLayer;
-                }
-            }
-
-            for(int i = 0; i < hiddenBiases.length; i++){
-                hiddenBiases[i] = random.nextGaussian()/10000;
-            }
-
-            for(int i = 0; i < hiddenToOutputWeights.length; i++){
-                for(int j = 0; j < hiddenToOutputWeights[i].length; j++){
-                    hiddenToOutputWeights[i][j] = random.nextGaussian()/sizeOfHiddenLayer;
-                }
-            }
-
-            for(int i = 0; i < outputBiases.length; i++){
-                outputBiases[i] = random.nextGaussian()/10000;
-            }
-
-            network.inputToHidden = new WeightMap(inputToHiddenWeights, hiddenBiases);
-            network.hiddenToOutput = new WeightMap(hiddenToOutputWeights, outputBiases);
-
-            player.network = network;
-        }
+        ensurePlayerHasNetwork(player, random, sizeOfHiddenLayer, sizeOfOutputLayer);
 
         Node[] inputLayer = new Node[sizeOfInputLayer];
         Node[] hiddenLayer = new Node[sizeOfHiddenLayer];
@@ -76,8 +46,43 @@ public class IntelligentStrategy extends Strategy {
         }
 
         player.network.inputLayer = new Layer(inputLayer);
-        player.network.hiddenLayer = new Layer(hiddenLayer);
+        player.network.hiddenLayer1 = new Layer(hiddenLayer);
         player.network.outputLayer = new Layer(outputLayer);
+    }
+
+    private void ensurePlayerHasNetwork(TetrisPlayer player, Random random, int sizeOfHiddenLayer, int sizeOfOutputLayer) {
+        if(player.network == null) {
+            Network network = new Network();
+
+            double[][] inputToHiddenWeights = getEmptyWeights(random, sizeOfInputLayer, sizeOfHiddenLayer);
+            double[][] hiddenToOutputWeights = getEmptyWeights(random, sizeOfHiddenLayer, sizeOfOutputLayer);
+
+            double[] hiddenBiases = getEmptyBiases(random, sizeOfHiddenLayer);
+            double[] outputBiases = getEmptyBiases(random, sizeOfOutputLayer);
+
+            network.inputToHidden1 = new WeightMap(inputToHiddenWeights, hiddenBiases);
+            network.hidden2ToOutput = new WeightMap(hiddenToOutputWeights, outputBiases);
+
+            player.network = network;
+        }
+    }
+
+    private double[] getEmptyBiases(Random random, int sizeOfLayer) {
+        double[] biases = new double[sizeOfLayer];
+        for(int i = 0; i < biases.length; i++){
+            biases[i] = random.nextGaussian()/10000;
+        }
+        return biases;
+    }
+
+    private double[][] getEmptyWeights(Random random, int sizeOfFromLayer, int sizeOfToLayer) {
+        double[][] weights = new double[sizeOfToLayer][sizeOfFromLayer];
+        for(int i = 0; i < weights.length; i++){
+            for(int j = 0; j < weights[i].length; j++){
+                weights[i][j] = random.nextGaussian()/sizeOfFromLayer;
+            }
+        }
+        return weights;
     }
 
     @Override

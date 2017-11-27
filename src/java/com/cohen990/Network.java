@@ -5,30 +5,38 @@ import com.cohen990.Commands.*;
 
 public class Network {
     public Layer inputLayer;
-    public Layer hiddenLayer;
+    public Layer hiddenLayer1;
+    public Layer hiddenLayer2;
     public Layer outputLayer;
 
-    public WeightMap inputToHidden;
-    public WeightMap hiddenToOutput;
+    public WeightMap inputToHidden1;
+    public WeightMap hidden1ToHidden2;
+    public WeightMap hidden2ToOutput;
 
     public Command evaluate(Tetris game) {
-        evaluateHiddenLayer();
+        evaluateFirstHiddenLayer();
+        evaluateSecondHiddenLayer();
         evaluateOutputLayer();
 
         return getCommandFromOutputLayer(game);
     }
 
-    private void evaluateHiddenLayer() {
-        for(int i = 0; i < hiddenLayer.length; i++) {
-            Node node = evaluateNodeAgainstLayerWithWeightsAndBias(inputLayer, inputToHidden.getWeights(i), inputToHidden.getBias(i), "hidden");
-            hiddenLayer.set(i, node);
-        }
+    private void evaluateFirstHiddenLayer() {
+        evaluateLayer(inputLayer, hiddenLayer1, inputToHidden1);
+    }
+
+    private void evaluateSecondHiddenLayer() {
+        evaluateLayer(hiddenLayer1, hiddenLayer2, hidden1ToHidden2);
     }
 
     private void evaluateOutputLayer() {
-        for(int i = 0; i < outputLayer.length; i++){
-            Node node = evaluateNodeAgainstLayerWithWeightsAndBias(hiddenLayer, hiddenToOutput.getWeights(i), hiddenToOutput.getBias(i), "output");
-            outputLayer.set(i, node);
+        evaluateLayer(hiddenLayer2, outputLayer, hidden2ToOutput);
+    }
+
+    private void evaluateLayer(Layer sourceLayer, Layer resultLayer, WeightMap weightsAndBiases){
+        for(int i = 0; i < resultLayer.length; i++){
+            Node node = evaluateNodeAgainstLayerWithWeightsAndBias(sourceLayer, weightsAndBiases.getWeights(i), weightsAndBiases.getBias(i), "");
+            resultLayer.set(i, node);
         }
     }
 
@@ -79,7 +87,7 @@ public class Network {
 
     @Override
     public String toString() {
-        return String.format("inputToHidden:%s\nhiddenToOutput:%s", inputToHidden, hiddenToOutput);
+        return String.format("inputToHidden1:%s\nhidden2ToOutput:%s", inputToHidden1, hidden2ToOutput);
     }
 }
 
