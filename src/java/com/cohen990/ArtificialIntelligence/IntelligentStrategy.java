@@ -23,7 +23,7 @@ public class IntelligentStrategy extends Strategy {
 
     private void initializeNeuralNetwork(Tetris game, TetrisPlayer player) {
         Random random = new Random();
-        int sizeOfHiddenLayer = 1000;
+        int sizeOfHiddenLayer = 100;
         numberOfDistinctCommands = 7;
         int sizeOfOutputLayer = numberOfDistinctCommands;
 

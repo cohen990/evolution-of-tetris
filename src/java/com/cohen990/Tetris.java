@@ -180,7 +180,7 @@ public class Tetris extends JPanel {
                 final Tetris game = new Tetris(i);
                 game.init();
 
-                if(i%10 == 0){
+                if(i%100 == 0){
                     game.shouldDraw = true;
                     initialiseGameFrame(game);
                 }
@@ -196,7 +196,7 @@ public class Tetris extends JPanel {
                 players.get(i).evaluateFitness(game.score, game.well);
             }
 
-            String directory = String.format("experiment6\\generation%d\\", generation);
+            String directory = String.format("experiment9\\generation%d\\", generation);
 
             writeSummary(directory, players);
 
